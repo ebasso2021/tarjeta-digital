@@ -1,7 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Eduardo Lee Basso</title>
+<meta name="theme-color" content="#05070d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
   :root{
     --void:#05070d;
     --card:#0c1220;
@@ -28,10 +35,15 @@
     align-items:flex-start;
     justify-content:center;
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;
     position:relative;
     overflow-x:hidden;
   }
 
+  a, button{-webkit-tap-highlight-color:transparent;}
+
+  /* Ambient field: concentric signal arcs + faint node grid, echoing the mark */
   .field{
     position:fixed;
     inset:0;
@@ -93,6 +105,7 @@
     -webkit-background-clip:text;
     background-clip:text;
     color:transparent;
+    -webkit-text-fill-color:transparent;
   }
   .identity .tagline{
     margin:10px 0 0;
@@ -246,7 +259,8 @@
     text-align:center;
   }
 </style>
-
+</head>
+<body>
 <div class="field" aria-hidden="true"></div>
 
 <div class="stage">
@@ -393,3 +407,5 @@
     }
   });
 </script>
+</body>
+</html>
