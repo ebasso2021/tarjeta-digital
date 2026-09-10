@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Eduardo Lee Basso</title>
 <meta name="theme-color" content="#05070d">
+<meta name="description" content="Digital business card for Eduardo Lee Basso, Aibuildapp Canada — contact details, WhatsApp and QR code.">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eduardo Basso">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -239,6 +249,36 @@
     text-align:center;
   }
 
+  .install-btn{
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    background:transparent;
+    color:var(--ink);
+    font-family:'Sora',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    border:1px solid var(--edge);
+    padding:12px 16px;
+    border-radius:14px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .install-btn:hover{border-color:var(--indigo);background:var(--edge-soft);}
+  .install-btn svg{width:16px;height:16px;flex:none;}
+  .ios-hint{
+    margin:14px 0 0;
+    font-size:12px;
+    color:var(--ink-dim);
+    text-align:center;
+    line-height:1.5;
+  }
+  .ios-hint strong{color:var(--ink);font-weight:600;}
+  .ios-share-icon{display:inline-block;width:13px;height:13px;vertical-align:-2px;}
+
   .actions{
     margin-top:16px;
     display:grid;
@@ -337,6 +377,14 @@
       <p class="qr-caption">Scan with your phone camera to save this as a contact</p>
     </div>
 
+    <button type="button" id="installBtn" class="install-btn" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Install this card as an app
+    </button>
+    <p class="ios-hint" id="iosHint" hidden>
+      On iPhone: tap <strong>Share</strong> then <strong>Add to Home Screen</strong> to install this card
+    </p>
+
     <div class="actions">
       <button type="button" id="copyBtn">Copy details</button>
       <button type="button" id="shareBtn">Share card</button>
@@ -430,6 +478,45 @@
       showToast("Sharing not supported on this browser");
     }
   });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+
+  // --- Install as app (Android/Chrome/Edge native prompt, iOS Safari hint) ---
+  var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  var installBtn = document.getElementById("installBtn");
+  var iosHint = document.getElementById("iosHint");
+  var isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+
+  if (!isStandalone) {
+    if (isIos) {
+      iosHint.hidden = false;
+    }
+
+    var deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener("click", function(){
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function(){
+        deferredPrompt = null;
+        installBtn.hidden = true;
+      });
+    });
+
+    window.addEventListener("appinstalled", function(){
+      installBtn.hidden = true;
+      showToast("Installed — find it on your home screen");
+    });
+  }
 </script>
 
 </body>
