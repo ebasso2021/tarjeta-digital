@@ -269,14 +269,14 @@
   }
   .install-btn:hover{border-color:var(--indigo);background:var(--edge-soft);}
   .install-btn svg{width:16px;height:16px;flex:none;}
-  .ios-hint{
+  .ios-hint, .manual-hint{
     margin:14px 0 0;
     font-size:12px;
     color:var(--ink-dim);
     text-align:center;
     line-height:1.5;
   }
-  .ios-hint strong{color:var(--ink);font-weight:600;}
+  .ios-hint strong, .manual-hint strong{color:var(--ink);font-weight:600;}
   .ios-share-icon{display:inline-block;width:13px;height:13px;vertical-align:-2px;}
 
   .actions{
@@ -381,6 +381,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
       <span id="installBtnLabel">Install this card as an app</span>
     </button>
+    <p class="manual-hint" id="installHint" hidden>
+      Tap <strong>&#8942;</strong> (top-right menu) then <strong>Install app</strong> or <strong>Add to Home screen</strong>
+    </p>
     <p class="ios-hint" id="iosHint" hidden>
       On iPhone: tap <strong>Share</strong> then <strong>Add to Home Screen</strong> to install this card
     </p>
@@ -489,6 +492,7 @@
   var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   var installBtn = document.getElementById("installBtn");
   var installBtnLabel = document.getElementById("installBtnLabel");
+  var installHint = document.getElementById("installHint");
   var iosHint = document.getElementById("iosHint");
   var ua = navigator.userAgent.toLowerCase();
   var isIos = /iphone|ipad|ipod/.test(ua);
@@ -498,16 +502,17 @@
     if (isIos) {
       iosHint.hidden = false;
     } else {
-      // Show a working install action even when Chrome never fires
-      // "beforeinstallprompt" (it withholds that event based on its own
-      // heuristics, so we can't rely on it alone). Default to manual
-      // instructions; upgrade to the one-tap native prompt if it arrives.
+      // Chrome only offers the one-tap native install prompt when it decides
+      // to fire "beforeinstallprompt" (undocumented heuristics we can't
+      // force) — so always show the manual steps too, not just after a
+      // click that might do nothing if that event never arrives.
       var deferredPrompt = null;
       var manualInstructions = isAndroid
         ? "Tap the ⋮ menu (top right of Chrome), then \"Install app\" or \"Add to Home screen\""
         : "Open your browser's menu and look for \"Install\" or \"Add to Home screen\"";
 
       installBtn.hidden = false;
+      installHint.hidden = false;
 
       window.addEventListener("beforeinstallprompt", function(e){
         e.preventDefault();
@@ -529,6 +534,7 @@
 
     window.addEventListener("appinstalled", function(){
       installBtn.hidden = true;
+      installHint.hidden = true;
       showToast("Installed — find it on your home screen");
     });
   }
