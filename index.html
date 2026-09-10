@@ -379,7 +379,7 @@
 
     <button type="button" id="installBtn" class="install-btn" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
-      Install this card as an app
+      <span id="installBtnLabel">Install this card as an app</span>
     </button>
     <p class="ios-hint" id="iosHint" hidden>
       On iPhone: tap <strong>Share</strong> then <strong>Add to Home Screen</strong> to install this card
@@ -433,10 +433,10 @@
 
   var toast = document.getElementById("toast");
   var toastTimer = null;
-  function showToast(msg){
+  function showToast(msg, duration){
     toast.textContent = msg;
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ toast.textContent = ""; }, 2400);
+    toastTimer = setTimeout(function(){ toast.textContent = ""; }, duration || 2400);
   }
 
   document.getElementById("copyBtn").addEventListener("click", function(){
@@ -488,29 +488,44 @@
   // --- Install as app (Android/Chrome/Edge native prompt, iOS Safari hint) ---
   var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   var installBtn = document.getElementById("installBtn");
+  var installBtnLabel = document.getElementById("installBtnLabel");
   var iosHint = document.getElementById("iosHint");
-  var isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+  var ua = navigator.userAgent.toLowerCase();
+  var isIos = /iphone|ipad|ipod/.test(ua);
+  var isAndroid = /android/.test(ua);
 
   if (!isStandalone) {
     if (isIos) {
       iosHint.hidden = false;
-    }
+    } else {
+      // Show a working install action even when Chrome never fires
+      // "beforeinstallprompt" (it withholds that event based on its own
+      // heuristics, so we can't rely on it alone). Default to manual
+      // instructions; upgrade to the one-tap native prompt if it arrives.
+      var deferredPrompt = null;
+      var manualInstructions = isAndroid
+        ? "Tap the ⋮ menu (top right of Chrome), then \"Install app\" or \"Add to Home screen\""
+        : "Open your browser's menu and look for \"Install\" or \"Add to Home screen\"";
 
-    var deferredPrompt = null;
-    window.addEventListener("beforeinstallprompt", function(e){
-      e.preventDefault();
-      deferredPrompt = e;
       installBtn.hidden = false;
-    });
 
-    installBtn.addEventListener("click", function(){
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.finally(function(){
-        deferredPrompt = null;
-        installBtn.hidden = true;
+      window.addEventListener("beforeinstallprompt", function(e){
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtnLabel.textContent = "Install this card as an app";
       });
-    });
+
+      installBtn.addEventListener("click", function(){
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.finally(function(){
+            deferredPrompt = null;
+          });
+        } else {
+          showToast(manualInstructions, 6000);
+        }
+      });
+    }
 
     window.addEventListener("appinstalled", function(){
       installBtn.hidden = true;
